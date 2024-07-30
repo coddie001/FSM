@@ -5,4 +5,6 @@ calculate score averages using  mean & standard deviation to determine average p
 
 Assign grades
 
+Export student scores to CSV
+
 """
