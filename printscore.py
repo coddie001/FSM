@@ -5,6 +5,8 @@ calculate score averages using  mean & standard deviation to determine average p
 
 Assign grades
 
+Export to csv
+
 """
 
 import random
