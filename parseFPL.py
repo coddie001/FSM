@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import json
 import pandas as pd
 import string
+import sqlite3
 
 # Fetch the data from the URL
 url = 'https://fantasy.premierleague.com/api/bootstrap-static/'
@@ -23,7 +24,7 @@ filtered_teams = []
 for team in teams:
     filtered_team = {
         "id": team["id"],
-        "name": team["name"],
+        "team_name": team["name"],
         "short_name": team["short_name"],
         "team_division": team["team_division"],
         "played":team["played"],
@@ -125,14 +126,47 @@ print("\nFiltered Players:")
 for player in filtered_players:
     print(player)
 
+df_teams_cols = ['team_name', 'short_name', 'played', 'points', 'position' , 'win', 'loss', 'draw']
+
 # Convert the list to a DataFrame
-df_teams = pd.DataFrame(filtered_teams)
+df_teams = pd.DataFrame(filtered_teams, columns = df_teams_cols)
 df_players = pd.DataFrame(filtered_players)
 print(f"Task completed for teams: {df_teams}, Task completed for players: {df_players}")
 
-df_teams.to_csv("FPL_teams.csv", index=False)
-df_players.to_csv("FPL_players.csv", index=False)
-print("Finished processing and saved both files to csv")
+
+
+#df_teams.to_csv("FPL_teams.csv", index=False)
+#df_players.to_csv("FPL_players.csv", index=False)
+#print("Finished processing and saved both files to csv")
+
+##################################################### Import teams to DB
+conn = sqlite3.connect('/users/mac/Downloads/Data/players.db')
+cursor = conn.cursor()
+
+# Check if the table exists
+cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Teams';")
+table_exists = cursor.fetchone()
+
+if table_exists:
+    # Table exists, insert data
+    try:
+        df_teams.to_sql('Teams', conn, if_exists='append', index=False)
+        print("Data inserted successfully.")
+    except Exception as e:
+        print(f"Error occurred while inserting data: {e}")
+    
+    # Verify the data in the database
+    cursor.execute("SELECT * FROM Teams;")
+    rows = cursor.fetchall()
+    print("Data in 'Teams' table after insertion:")
+    for row in rows:
+        print(row)
+else:
+    print("Table 'Teams' does not exist.")
+
+# Commit and close the connection
+conn.commit()
+conn.close()
 
 """# Define the Excel writer object
     with pd.ExcelWriter('multiple_sheets.xlsx') as writer:
